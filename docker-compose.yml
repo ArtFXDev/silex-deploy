@@ -25,7 +25,9 @@ services:
     front:
         <<: *base
         container_name: ${COMPOSE_PROJECT_NAME:-silex}-front
-        image: ghcr.io/artfxdev/silex-front:latest
+        image: local-front
+        build:
+            context: ../silex-front
         ports:
             - '80'
         hostname: silex-front
@@ -57,7 +59,9 @@ services:
         <<: *base
         <<: *zou-volumes
         container_name: ${COMPOSE_PROJECT_NAME:-silex}-zou-app
-        image: ghcr.io/artfxdev/zou:latest
+        image: zou-latest
+        build:
+            context: ../zou
         depends_on:
             - zou-db
         ports:
@@ -68,7 +72,9 @@ services:
     zou-event:
         <<: *base
         container_name: ${COMPOSE_PROJECT_NAME:-silex}-zou-event
-        image: ghcr.io/artfxdev/zou:latest
+        image: zou-latest
+        build:
+            context: ../zou
         depends_on:
             - zou-redis
         ports:
@@ -80,7 +86,9 @@ services:
         <<: *base
         <<: *zou-volumes
         container_name: ${COMPOSE_PROJECT_NAME:-silex}-zou-jobs
-        image: ghcr.io/artfxdev/zou:latest
+        image: zou-latest
+        build:
+            context: ../zou
         command: "rq worker -c zou.job_settings"
 
 
@@ -111,12 +119,45 @@ services:
         ports:
             - '5672'
             - '15672'
+        healthcheck:
+            test: ["CMD-SHELL", "rabbitmq-diagnostics -q ping"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
             
     sg_producer:
         <<: *base
-        image: ghcr.io/artfxdev/sg-listener:main
+        image: ghcr.io/artfxdev/sg-listener:latest
         container_name: ${COMPOSE_PROJECT_NAME:-silex}-sg_producer
-
+        depends_on:
+            rabbitmq:
+                condition: service_healthy
+        
+    sg_worker:
+        <<: *base
+        image: ghcr.io/artfxdev/sg-listener:latest
+        container_name: ${COMPOSE_PROJECT_NAME:-silex}-sg_worker
+        command: [ "python", "-m", "worker" ]
+        depends_on:
+            rabbitmq:
+                condition: service_healthy
+        
+    gazu_producer:
+        <<: *base
+        image: ghcr.io/artfxdev/gazu-listener:latest
+        container_name: ${COMPOSE_PROJECT_NAME:-silex}-gazu_producer
+        depends_on:
+            rabbitmq:
+                condition: service_healthy
+        
+    gazu_worker:
+        <<: *base
+        image: ghcr.io/artfxdev/gazu-listener:latest
+        container_name: ${COMPOSE_PROJECT_NAME:-silex}-gazu_worker
+        command: [ "python", "-m", "worker" ]
+        depends_on:
+            rabbitmq:
+                condition: service_healthy
 networks:
     internal:
         name: ${COMPOSE_PROJECT_NAME:-silex}-internal
