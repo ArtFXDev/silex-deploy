@@ -35,10 +35,17 @@ Created a folder containing the following repos:
    
    `docker image rm {IMAGE_ID}`
    
-   To test locally, change the windows host file, and add:
+   To test locally, change the windows host file (C//Windows/System32/drivers/etc/hosts), and add:
+   
    
   127.0.0.1 docs.preprod.silex.artfx.fr
+  
+  
   127.0.0.1 front.preprod.silex.artfx.fr
+  
+  
   127.0.0.1 kitsu.preprod.silex.artfx.fr
+  
+  
   127.0.0.1 events.preprod.silex.artfx.fr
    
