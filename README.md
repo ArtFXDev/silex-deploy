@@ -3,11 +3,11 @@ Silex docker-compose and nginx deployment repos
 
 ## Temporary install:
 
-Created a folder containing the following repos:
-  - silex-doc
-  - silex-front
-  - zou
-  - kitsu
+Create a folder containing the following repos:
+  - [silex-doc](https://github.com/ArtFXDev/silex-doc)
+  - [silex-front](https://github.com/ArtFXDev/silex-front)
+  - [zou:deploy_update](https://github.com/ArtFXDev/zou/tree/deploy_update)
+  - [kitsu](https://github.com/ArtFXDev/kitsu)
  
  Required:
   - Docker
