@@ -1,13 +1,15 @@
 version: '3.5'
 
-x-base: &base
-    restart: always
-    networks: 
+x-base:
+    # restart: always
+    &base
+    networks:
         - internal
     env_file:
         - ${ENV_FILE:-./env}
-        
-x-zou-volumes: &zou-volumes
+
+x-zou-volumes:
+    &zou-volumes
     volumes:
         - 'zou-previews:${PREVIEW_FOLDER:-/opt/zou/previews}'
         - 'zou-tmp:${TMP_DIR:-/tmp/zou}'
@@ -21,7 +23,7 @@ services:
         ports:
             - '80'
         hostname: silex-doc
-        
+
     front:
         <<: *base
         container_name: ${COMPOSE_PROJECT_NAME:-silex}-front
@@ -43,7 +45,7 @@ services:
             - zou-app
         ports:
             - '${PORT:-80}:80'
-            
+
     # CGWIRE
     zou-db:
         <<: *base
@@ -54,7 +56,7 @@ services:
             - ./postgres/pg_ctl.conf:/etc/postgresql/${DB_VERSION:-12}/main/pg_ctl.conf:ro
         environment:
             - POSTGRES_PASSWORD=${DB_PASSWORD:-password}
-            
+
     zou-app:
         <<: *base
         <<: *zou-volumes
@@ -62,6 +64,8 @@ services:
         image: zou-latest
         build:
             context: ../zou
+        volumes:
+            - "../zou:/usr/local/lib/python3.7/site-packages/zou"
         depends_on:
             - zou-db
         ports:
@@ -75,13 +79,15 @@ services:
         image: zou-latest
         build:
             context: ../zou
+        volumes:
+            - "../zou:/usr/local/lib/python3.7/site-packages/zou"
         depends_on:
             - zou-redis
         ports:
             - '5001'
         command: "gunicorn --error-logfile - --access-logfile - -w 1 -k geventwebsocket.gunicorn.workers.GeventWebSocketWorker -b :5001 zou.event_stream:app"
         hostname: zou-event
-        
+
     zou-jobs:
         <<: *base
         <<: *zou-volumes
@@ -89,8 +95,9 @@ services:
         image: zou-latest
         build:
             context: ../zou
+        volumes:
+            - "../zou:/usr/local/lib/python3.7/site-packages/zou"
         command: "rq worker -c zou.job_settings"
-
 
     zou-redis:
         <<: *base
@@ -98,7 +105,7 @@ services:
         image: redis:alpine
         volumes:
             - 'zou-redis:/data'
-    
+
     kitsu:
         <<: *base
         container_name: ${COMPOSE_PROJECT_NAME:-silex}-kitsu
@@ -120,50 +127,56 @@ services:
             - '5672'
             - '15672'
         healthcheck:
-            test: ["CMD-SHELL", "rabbitmq-diagnostics -q ping"]
+            test: [ "CMD-SHELL", "rabbitmq-diagnostics -q ping" ]
             interval: 10s
             timeout: 5s
             retries: 5
-            
-    sg_producer:
-        <<: *base
-        image: ghcr.io/artfxdev/sg-listener:latest
-        container_name: ${COMPOSE_PROJECT_NAME:-silex}-sg_producer
-        depends_on:
-            rabbitmq:
-                condition: service_healthy
-        
-    sg_worker:
-        <<: *base
-        image: ghcr.io/artfxdev/sg-listener:latest
-        container_name: ${COMPOSE_PROJECT_NAME:-silex}-sg_worker
-        command: [ "python", "-m", "worker" ]
-        depends_on:
-            rabbitmq:
-                condition: service_healthy
-        
+            # sg_producer:
+            # <<: *base
+            # image: sg-listener
+            # build:
+            # context: ../sg-listener
+            # container_name: ${COMPOSE_PROJECT_NAME:-silex}-sg_producer
+            # depends_on:
+            # rabbitmq:
+            # condition: service_healthy
+
+            # sg_worker:
+            # <<: *base
+            # image: sg-listener
+            # build:
+            # context: ../sg-listener
+            # container_name: ${COMPOSE_PROJECT_NAME:-silex}-sg_worker
+            # command: [ "python", "-m", "worker" ]
+            # depends_on:
+            # rabbitmq:
+            # condition: service_healthy
+
     gazu_producer:
         <<: *base
-        image: ghcr.io/artfxdev/gazu-listener:latest
+        image: gazu-listener
+        build:
+            context: ../gazu-listener
         container_name: ${COMPOSE_PROJECT_NAME:-silex}-gazu_producer
         depends_on:
             rabbitmq:
                 condition: service_healthy
-        
-    gazu_worker:
-        <<: *base
-        image: ghcr.io/artfxdev/gazu-listener:latest
-        container_name: ${COMPOSE_PROJECT_NAME:-silex}-gazu_worker
-        command: [ "python", "-m", "worker" ]
-        depends_on:
-            rabbitmq:
-                condition: service_healthy
+                # gazu_worker:
+                # <<: *base
+                # image: ghcr.io/artfxdev/gazu-listener:latest
+                # container_name: ${COMPOSE_PROJECT_NAME:-silex}-gazu_worker
+                # command: [ "python", "-m", "worker" ]
+                # depends_on:
+                # rabbitmq:
+                # condition: service_healthy
 networks:
     internal:
         name: ${COMPOSE_PROJECT_NAME:-silex}-internal
         driver: bridge
-        
+
 volumes:
+    zou-dev-app:
+        name: zou-dev-app
     zou-db:
         name: ${COMPOSE_PROJECT_NAME:-silex}-zou-db
     zou-redis:
