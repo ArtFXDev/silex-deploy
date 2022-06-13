@@ -1,0 +1,9 @@
+# https://zou.cg-wire.com/configuration/
+
+KV_HOST=zou-redis
+DB_HOST=zou-db
+
+ENABLE_JOB_QUEUE=True
+
+POSTGRES_PASSWORD=password
+DB_PASSWORD=password

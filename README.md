@@ -1,95 +1,90 @@
-# silex-deploy
-Silex docker-compose and nginx deployment repos
+# Silex deploy
 
-## Temporary install:
+![](https://img.shields.io/badge/Docker-309cef?style=for-the-badge&logo=docker&logoColor=white) ![](https://img.shields.io/badge/Nginx-009639?style=for-the-badge&logo=nginx&logoColor=white) ![](https://img.shields.io/badge/Postgresql-336791?style=for-the-badge&logo=postgresql&logoColor=white)
 
-Create a folder containing the following repos:
-  - [silex-doc](https://github.com/ArtFXDev/silex-doc)
-  - [silex-front](https://github.com/ArtFXDev/silex-front)
-  - [zou:deploy_update](https://github.com/ArtFXDev/zou/tree/deploy_update)
-  - [kitsu](https://github.com/ArtFXDev/kitsu)
- 
- Required:
-  - Docker
-  - locally created env file in silex-deploy folder
- 
- All docker commands are run from silex-deploy folder.
- to run:
- 
-    `docker-compose up`
-  
-  To stop:
-  
-  ctrl+C
-  
-  To remove containers:
-  
-  
-    `docker-compose down`
-    
-   to list images:
-   
-    `docker images`
-   
-   to remove an image:
-   
-    `docker image rm {IMAGE_ID}`
-   
-   To test locally, change the windows host file (C//Windows/System32/drivers/etc/hosts), and add:
-   
-```   
-  127.0.0.1 docs.preprod.silex.artfx.fr
-  127.0.0.1 front.preprod.silex.artfx.fr
-  127.0.0.1 kitsu.preprod.silex.artfx.fr
-  127.0.0.1 events.preprod.silex.artfx.fr
+Silex `docker-compose` and Nginx deployment files.
+
+## Introduction
+
+The compose stack uses the following repositories:
+
+- [silex-doc](https://github.com/ArtFXDev/silex-doc)
+- [silex-front](https://github.com/ArtFXDev/silex-front)
+- [zou](https://github.com/ArtFXDev/zou/tree/deploy_update) (ArtFXDev fork)
+- [kitsu](https://github.com/ArtFXDev/kitsu) (ArtFXDev fork)
+- [harvest-api](https://github.com/ArtFXDev/harvest-api)
+- [harvest-ui](https://github.com/ArtFXDev/harvest-ui)
+
+## Prerequisites
+
+Make sure to create and modify the `env` files in `./env` (use `.example` files for a template):
+
+- `./env/cgwire` CGWire (Zou, Zou db) related variables
+- `./env/harvest` Harvest (UI, API) variables
+- `./env/broker` Event broker variables
+
+**-> The `.env` file describe global environment variables for the `docker-compose.yml` file.**
+
+## Installation
+
+To run the compose stack in detached mode:
+
+```shell
+$ docker-compose --env-file .env up -d
 ```
 
-## Creation of **zoudb** database
+### 1) Zou PostgreSQL database setup
 
-`docker ps` to list running containers.
+Run a `sh` shell in the `zou-db` container and create the database:
 
-Connect via sh to the "postgres:*-alpine" container.  
-(`<CONTAINER ID>` is the id of "postgres:*-alpine")  
-  
-```
-docker exec -it <CONTAINER ID> sh`
+```shell
+$ docker-compose exec zou-db sh
+$ su - postgres -c "createdb -T template0 -E UTF8 --owner postgres zoudb"
 ```
 
-### Creation of **zoudb**
+Then test that the database was created successfully:
 
-Create database **zoudb** (with user **postgres**)
-```
-su - postgres -c "createdb -T template0 -E UTF8 --owner postgres zoudb"
-```
-
-### Checking **zoudb**
-
-Connect to postgres (go into postgres invite)
-```
-psql -U postgres
+```shell
+$ psql -U postgres
+$ \l # List databases
+$ \c zoudb # Switch database
+$ \d # List tables
 ```
 
-List databases: `\l`
-Connect to zoudb: `\c zoudb`
-List tables (dump): `\d`
+### 2) Initialize Zou database data and admin account
 
-
-## Init of **zoudb**
-
-`docker ps` to list running containers.
-
-Connect via sh to the "silex-zou-app" container.  
-(`<CONTAINER ID>` is the id of "silex-zou-app")  
-  
-```
-docker exec -it <CONTAINER ID> sh`
+```shell
+$ docker-compose exec zou-app sh
+$ zou upgrade-db # Apply migrations
+$ zou init-data # Initialize entities
+$ zou create-admin admin@example.com --password mysecretpassword
+$ exit
 ```
 
-### Upgrade, init, create admin
+### Testing on local computer
+
+To test the whole stack locally, modify your `host` file and add those urls:
 
 ```
-zou upgrade-db
-zou init-data
-zou create-admin admin@example.com --password mysecretpassword
+127.0.0.1 docs.prod.silex.artfx.fr
+127.0.0.1 front.prod.silex.artfx.fr
+127.0.0.1 kitsu.prod.silex.artfx.fr
+127.0.0.1 events.prod.silex.artfx.fr
 ```
-=======
+
+## Update
+
+To update and pull the latest images, use the following commands:
+
+```shell
+$ docker-compose pull
+$ docker-compose --env-file .env up -d --build # Rebuild images
+```
+
+## Contributing
+
+Pull requests and issues are welcome. For major changes, please open an issue first to discuss what you would like to change.
+
+## License
+
+[MIT](./LICENSE.md) [@ArtFX](https://artfx.school/)

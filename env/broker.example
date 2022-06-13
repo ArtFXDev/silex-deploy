@@ -1,0 +1,13 @@
+BROKER_URL=silex-events
+BROKER_EXCHANGE_NAME=events
+SG_WORKER_QUEUE_NAME=sg
+GAZU_WORKER_QUEUE_NAME=gazu
+
+SG_ED_SITE_URL=https://artfx.shotgunstudio.com
+SG_ED_SCRIPT_NAME=sync_event
+SG_ED_API_KEY=<hidden>
+
+GAZU_HOST=http://kitsu.preprod.silex.artfx.fr/api
+GAZU_EVENT_HOST=http://kitsu.preprod.silex.artfx.fr
+GAZU_LOGIN=admin@example.com
+GAZU_PW=mysecretpassword

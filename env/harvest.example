@@ -1,0 +1,16 @@
+TRACTOR_URL="http://tractor/Tractor"
+
+TRACTOR_LOGIN="user"
+TRACTOR_PASSWORD="password"
+
+HARVEST_DB_USER="user"
+POSTGRES_USER="user"
+
+HARVEST_DB_PASSWORD="password"
+POSTGRES_PASSWORD="password"
+
+DATABASE_URL=postgresql://${HARVEST_DB_USER}:${HARVEST_DB_PASSWORD}@harvest-postgres:5432/harvest?schema=public
+
+FOG_API_TOKEN="fog-api-token"
+FOG_USER_TOKEN="fog-user-token"
+FOG_URL="http://fog-url/fog"
