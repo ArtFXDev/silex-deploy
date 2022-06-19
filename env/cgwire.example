@@ -7,3 +7,6 @@ ENABLE_JOB_QUEUE=True
 
 POSTGRES_PASSWORD=password
 DB_PASSWORD=password
+
+PREVIEW_FOLDER=/opt/zou/previews
+TMP_DIR=/tmp/zou

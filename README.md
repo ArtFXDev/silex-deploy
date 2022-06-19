@@ -10,7 +10,7 @@ The compose stack uses the following repositories:
 
 - [silex-doc](https://github.com/ArtFXDev/silex-doc)
 - [silex-front](https://github.com/ArtFXDev/silex-front)
-- [zou](https://github.com/ArtFXDev/zou/tree/deploy_update) (ArtFXDev fork)
+- [zou](https://github.com/ArtFXDev/zou) (ArtFXDev fork)
 - [kitsu](https://github.com/ArtFXDev/kitsu) (ArtFXDev fork)
 - [harvest-api](https://github.com/ArtFXDev/harvest-api)
 - [harvest-ui](https://github.com/ArtFXDev/harvest-ui)
@@ -26,6 +26,14 @@ Make sure to create and modify the `env` files in `./env` (use `.example` files 
 **-> The `.env` file describe global environment variables for the `docker-compose.yml` file.**
 
 ## Installation
+
+If it's your first time cloning the repository, you can launch the `init.sh` script:
+
+```shell
+$ bash ./scripts/init.sh
+```
+
+It will do the following steps:
 
 To run the compose stack in detached mode:
 
