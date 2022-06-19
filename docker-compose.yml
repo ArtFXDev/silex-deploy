@@ -19,8 +19,8 @@ x-harvest:
 x-zou-volumes:
   &zou-volumes
   volumes:
-    - 'zou-previews:${ZOU_PREVIEW_FOLDER:-/opt/zou/previews}'
-    - 'zou-tmp:${ZOU_TMP_DIR:-/tmp/zou}'
+    - zou-previews:/opt/zou/previews
+    - zou-tmp:/tmp/zou
 
 services:
   # SILEX ---------------------------------------------------------------------
@@ -40,7 +40,7 @@ services:
       - '80'
     hostname: silex-front
 
-  # # HARVEST ---------------------------------------------------------------------
+  # HARVEST ---------------------------------------------------------------------
   harvest-postgres:
     <<: *base
     <<: *harvest-base
