@@ -50,6 +50,7 @@ services:
     <<: *cgwire-base
     <<: *zou-volumes
     container_name: ${COMPOSE_PROJECT_NAME:-silex}-zou-app
+    #build: ../zou
     image: ghcr.io/artfxdev/zou:latest
     hostname: zou-app
     depends_on:
@@ -62,6 +63,7 @@ services:
     <<: *base
     <<: *cgwire-base
     container_name: ${COMPOSE_PROJECT_NAME:-silex}-zou-event
+    #build: ../zou
     image: ghcr.io/artfxdev/zou:latest
     depends_on:
       - zou-redis
@@ -75,6 +77,7 @@ services:
     <<: *cgwire-base
     <<: *zou-volumes
     container_name: ${COMPOSE_PROJECT_NAME:-silex}-zou-jobs
+    #build: ../zou
     image: ghcr.io/artfxdev/zou:latest
     command: "rq worker -c zou.job_settings"
 
