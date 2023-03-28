@@ -55,8 +55,6 @@ services:
     container_name: ${COMPOSE_PROJECT_NAME:-silex}-zou-db-${DB_VERSION:-12}
     image: postgres:${DB_VERSION:-12}-alpine
     hostname: zou-db
-    environment:
-      POSTGRES_PASSWORD: example
     volumes:
       - zou-db:/var/lib/postgresql/data
       - ./postgres/pg_ctl.conf:/etc/postgresql/${DB_VERSION:-12}/main/pg_ctl.conf:ro
@@ -131,7 +129,19 @@ services:
     ports:
       - "5050:80"
   
-  
+  # RABBITMQ -----------------------------------------------------------------------------------
+  rabbitmq:
+    <<: *base
+    <<: *rabbitmq-base
+    container_name: ${COMPOSE_PROJECT_NAME:-silex}-rabbitmq
+    image: rabbitmq:3-management-alpine
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    hostname: my-rabbit
+    volumes:
+        - ~/.docker-conf/rabbitmq/data/:/var/lib/rabbitmq/
+        - ~/.docker-conf/rabbitmq/log/:/var/log/rabbitmqvolumes
 
 
   nginx:
