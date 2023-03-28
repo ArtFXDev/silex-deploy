@@ -11,6 +11,16 @@ x-cgwire:
   env_file:
     - ./env/cgwire
 
+x-pgadmin: 
+  &pgadmin-base
+  env_file:
+    - ./env/pgadmin
+
+x-rabbitmq:
+  &rabbitmq-base
+  env_file:
+   - ./env/rabbitmq
+
 x-zou-volumes:
   &zou-volumes
   volumes:
@@ -30,10 +40,13 @@ services:
   front:
     <<: *base
     container_name: ${COMPOSE_PROJECT_NAME:-silex}-front
-    image: ghcr.io/artfxdev/silex-front:latest
+    image: local-front
+    build:
+        context: ../silex-front
     ports:
-      - '80'
+        - '80'
     hostname: silex-front
+
 
   # CGWIRE ---------------------------------------------------------------------
   zou-db:
@@ -41,9 +54,16 @@ services:
     <<: *cgwire-base
     container_name: ${COMPOSE_PROJECT_NAME:-silex}-zou-db-${DB_VERSION:-12}
     image: postgres:${DB_VERSION:-12}-alpine
+    hostname: zou-db
+    environment:
+      POSTGRES_PASSWORD: example
     volumes:
       - zou-db:/var/lib/postgresql/data
       - ./postgres/pg_ctl.conf:/etc/postgresql/${DB_VERSION:-12}/main/pg_ctl.conf:ro
+    ports:
+      - 5432:5432
+    expose:
+      - 5432
 
   zou-app:
     <<: *base
@@ -101,7 +121,18 @@ services:
       - zou-app
       - zou-event
       - zou-jobs
-  # ----------------------------------------------------------------------------
+  # PGADMIN ----------------------------------------------------------------------------
+
+  pgadmin:
+    <<: *base
+    <<: *pgadmin-base
+    container_name: ${COMPOSE_PROJECT_NAME:-silex}-pgadmin
+    image: dpage/pgadmin4
+    ports:
+      - "5050:80"
+  
+  
+
 
   nginx:
     <<: *base
