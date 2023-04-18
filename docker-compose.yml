@@ -131,7 +131,18 @@ services:
   
   # RABBITMQ -----------------------------------------------------------------------------------
 
-
+  rabbitmq:
+    <<: *base
+    <<: *rabbitmq-base
+    container_name: ${COMPOSE_PROJECT_NAME:-silex}-rabbitmq
+    image: rabbitmq:3-management-alpine
+    ports:
+      - "5672:5672"
+      - "15672:80"
+    hostname: my-rabbit
+    volumes:
+        - ~/.docker-conf/rabbitmq/data/:/var/lib/rabbitmq/
+        - ~/.docker-conf/rabbitmq/log/:/var/log/rabbitmqvolumes
 
   nginx:
     <<: *base
@@ -148,6 +159,10 @@ networks:
   internal:
     name: ${COMPOSE_PROJECT_NAME:-silex}-internal
     driver: bridge
+    ipam:
+      config: 
+        - subnet: 17.19.0.0/16 
+          gateway: 17.19.0.1
 
 volumes:
   zou-db:
