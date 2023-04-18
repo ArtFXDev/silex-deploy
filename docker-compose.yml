@@ -159,10 +159,6 @@ networks:
   internal:
     name: ${COMPOSE_PROJECT_NAME:-silex}-internal
     driver: bridge
-    ipam:
-      config: 
-        - subnet: 17.19.0.0/16 
-          gateway: 17.19.0.1
 
 volumes:
   zou-db:
