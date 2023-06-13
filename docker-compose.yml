@@ -1,18 +1,13 @@
-version: '3.5'
-
-x-base:
-  &base
+x-base: &base
   restart: always
   networks:
     - internal
 
-x-cgwire:
-  &cgwire-base
+x-cgwire: &cgwire-base
   env_file:
     - ./env/cgwire
 
-x-zou-volumes:
-  &zou-volumes
+x-zou-volumes: &zou-volumes
   volumes:
     - zou-previews:/opt/zou/previews
     - zou-tmp:/tmp/zou
@@ -24,7 +19,7 @@ services:
     container_name: ${COMPOSE_PROJECT_NAME:-silex}-docs
     image: ghcr.io/artfxdev/silex-doc:latest
     ports:
-      - '80'
+      - "80"
     hostname: silex-doc
 
   front:
@@ -32,13 +27,12 @@ services:
     container_name: ${COMPOSE_PROJECT_NAME:-silex}-front
     image: ghcr.io/artfxdev/silex-front:latest
     ports:
-      - '80'
+      - "80"
     hostname: silex-front
 
   # CGWIRE ---------------------------------------------------------------------
   zou-db:
-    <<: *base
-    <<: *cgwire-base
+    <<: [*base, *cgwire-base]
     container_name: ${COMPOSE_PROJECT_NAME:-silex}-zou-db-${DB_VERSION:-12}
     image: postgres:${DB_VERSION:-12}-alpine
     volumes:
@@ -46,62 +40,55 @@ services:
       - ./postgres/pg_ctl.conf:/etc/postgresql/${DB_VERSION:-12}/main/pg_ctl.conf:ro
 
   zou-app:
-    <<: *base
-    <<: *cgwire-base
-    <<: *zou-volumes
+    <<: [*base, *cgwire-base, *zou-volumes]
     container_name: ${COMPOSE_PROJECT_NAME:-silex}-zou-app
-    #build: ../zou
     image: ghcr.io/artfxdev/zou:latest
     hostname: zou-app
     depends_on:
       - zou-db
     ports:
-      - '5000'
+      - "5000"
     command: "gunicorn --error-logfile - --access-logfile - -w 3 -k gevent -b :5000 zou.app:app"
 
+  zou-redis:
+    <<: [*base, *cgwire-base]
+    container_name: ${COMPOSE_PROJECT_NAME:-silex}-zou-redis
+    image: redis:alpine
+    volumes:
+      - "zou-redis:/data"
+
   zou-event:
-    <<: *base
-    <<: *cgwire-base
+    <<: [*base, *cgwire-base]
     container_name: ${COMPOSE_PROJECT_NAME:-silex}-zou-event
-    #build: ../zou
     image: ghcr.io/artfxdev/zou:latest
     depends_on:
       - zou-redis
     ports:
-      - '5001'
+      - "5001"
     command: "gunicorn --error-logfile - --access-logfile - -w 1 -k geventwebsocket.gunicorn.workers.GeventWebSocketWorker -b :5001 zou.event_stream:app"
     hostname: zou-event
 
   zou-jobs:
-    <<: *base
-    <<: *cgwire-base
-    <<: *zou-volumes
+    <<: [*base, *cgwire-base, *zou-volumes]
     container_name: ${COMPOSE_PROJECT_NAME:-silex}-zou-jobs
-    #build: ../zou
+    depends_on:
+      - zou-event
     image: ghcr.io/artfxdev/zou:latest
     command: "rq worker -c zou.job_settings"
 
-  zou-redis:
-    <<: *base
-    <<: *cgwire-base
-    container_name: ${COMPOSE_PROJECT_NAME:-silex}-zou-redis
-    image: redis:alpine
-    volumes:
-      - 'zou-redis:/data'
-
   kitsu:
-    <<: *base
-    <<: *cgwire-base
+    <<: [*base, *cgwire-base]
     container_name: ${COMPOSE_PROJECT_NAME:-silex}-kitsu
     image: ghcr.io/artfxdev/kitsu:latest
     ports:
-      - '80'
+      - "80"
     hostname: kitsu
     depends_on:
       - zou-app
       - zou-event
       - zou-jobs
-  # ----------------------------------------------------------------------------
+
+  # NGINX ----------------------------------------------------------------------------
 
   nginx:
     <<: *base
@@ -109,10 +96,10 @@ services:
     build:
       context: ./nginx
     depends_on:
-      # - docs
       - zou-app
+      - kitsu
     ports:
-      - '${PORT:-80}:80'
+      - "${PORT:-80}:80"
 
 networks:
   internal:
