@@ -12,6 +12,16 @@ x-zou-volumes: &zou-volumes
     - zou-previews:/opt/zou/previews
     - zou-tmp:/tmp/zou
 
+x-rabbitmq: &rabbitmq-base
+  env_file:
+    - ./env/rabbitmq
+
+x-pgadmin: 
+  &pgadmin-base
+  env_file:
+    - ./env/pgadmin
+
+
 services:
   # SILEX ---------------------------------------------------------------------
   docs:
@@ -25,12 +35,15 @@ services:
   front:
     <<: *base
     container_name: ${COMPOSE_PROJECT_NAME:-silex}-front
-    image: ghcr.io/artfxdev/silex-front:latest
+    image: local-front
+    build:
+      context: D:\rez\dev_packages\internal\silex-front
     ports:
       - "80"
     hostname: silex-front
 
   # CGWIRE ---------------------------------------------------------------------
+
   zou-db:
     <<: [*base, *cgwire-base]
     container_name: ${COMPOSE_PROJECT_NAME:-silex}-zou-db-${DB_VERSION:-12}
@@ -100,6 +113,28 @@ services:
       - kitsu
     ports:
       - "${PORT:-80}:80"
+      
+  # RABBITMQ ---------------------------------------------------------------------
+
+  rabbitmq:
+    <<: [*base, *rabbitmq-base]
+    container_name: ${COMPOSE_PROJECT_NAME:-silex}-rabbitmq
+    image: rabbitmq:3-management-alpine
+    ports:
+      - "5672:5672"
+      - "15672:80"
+    volumes:
+        - ~/.docker-conf/rabbitmq/data/:/var/lib/rabbitmq/
+        - ~/.docker-conf/rabbitmq/log/:/var/log/rabbitmqvolumes
+
+
+
+  pgadmin:
+    <<: [*base, *pgadmin-base]
+    container_name: ${COMPOSE_PROJECT_NAME:-silex}-pgadmin
+    image: dpage/pgadmin4
+    ports:
+      - "5050:80"
 
 networks:
   internal:
@@ -115,3 +150,5 @@ volumes:
     name: ${COMPOSE_PROJECT_NAME:-silex}-zou-previews
   zou-tmp:
     name: ${COMPOSE_PROJECT_NAME:-silex}-zou-tmp
+
+
