@@ -1,2 +1,5 @@
 env/cgwire
 .idea
+env/broker
+env/harvest
+env/rabbitmq
